@@ -1,35 +1,66 @@
-import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { selectContacts } from "./redux/contactsSlice";
-import { fetchContacts } from "./redux/contactsOps";
+import { Suspense, lazy, useEffect } from "react";
+import { Route, Routes } from "react-router-dom";
 
-import ContactForm from "./components/ContactForm/ContactForm.jsx";
-import ContactList from "./components/ContactList/ContactList.jsx";
-import SearchBox from "./components/SearchBox/SearchBox.jsx";
+import { refreshThunk } from "./redux/auth/operations.js";
+import Layout from "./components/Layout/Layout.jsx";
 
 import "./index.css";
+import Loader from "./components/Loader/Loader.jsx";
+import { selectIsRefreshing } from "./redux/auth/authSlice.js";
+import PrivateRoute from "./routes/PrivateRoute.jsx";
+import PublicRoute from "./routes/PublicRoute.jsx";
+
+const HomePage = lazy(() => import("./pages/Home/Home"));
+const ContactsPage = lazy(() => import("./pages/ContactsPage/ContactsPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage/LoginPage"));
+const RegistrationPage = lazy(() =>
+  import("./pages/RegistrationPage/RegistrationPage")
+);
+const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 const App = () => {
   const dispatch = useDispatch();
-  const { loading, error } = useSelector(selectContacts);
-
+  const isRefreshing = useSelector(selectIsRefreshing);
   useEffect(() => {
-    dispatch(fetchContacts());
+    dispatch(refreshThunk());
   }, [dispatch]);
 
-  return (
-    <div className="container">
-      <h1 className="title">Phonebook</h1>
-      {error && <p>{error}</p>}
-      {loading && <p>Loading...</p>}
-      {!loading && !error && (
-        <>
-          <ContactForm />
-          <SearchBox />
-          <ContactList />
-        </>
-      )}
-    </div>
+  return isRefreshing ? (
+    <Loader />
+  ) : (
+    <Suspense fallback={null}>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route
+            path="contacts"
+            element={
+              <PrivateRoute>
+                <ContactsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <RegistrationPage />
+              </PublicRoute>
+            }
+          />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 

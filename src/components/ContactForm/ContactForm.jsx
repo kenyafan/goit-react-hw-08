@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { addContact } from "../../redux/contactsOps";
+import { addContact } from "../../redux/contacts/operations";
 import { nanoid } from "nanoid";
 import { Formik, Field, ErrorMessage, Form } from "formik";
 import * as Yup from "yup";
@@ -40,11 +40,18 @@ const ContactForm = () => {
           name="username"
           id={nameFieldId}
           className={s.input}
+          placeholder="Enter name"
         />
         <ErrorMessage className={s.error} component="span" name="username" />
 
         <label htmlFor={telFieldId}>Number</label>
-        <Field type="tel" name="tel" id={telFieldId} className={s.input} />
+        <Field
+          type="tel"
+          name="tel"
+          id={telFieldId}
+          className={s.input}
+          placeholder="Enter phone number"
+        />
         <ErrorMessage className={s.error} component="span" name="tel" />
         <button type="submit" className={s.button}>
           Submit
